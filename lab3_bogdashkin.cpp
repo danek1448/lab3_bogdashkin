@@ -1,20 +1,60 @@
-﻿// lab3_bogdashkin.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
+﻿#include <iostream>
+#include <windows.h>
+#include "sistema.h"
+#include "logirovanie.h"
 
-#include <iostream>
+using namespace std;
 
-int main()
-{
-    std::cout << "Hello World!\n";
+void Pokazat_menu() {
+    cout << "\nМеню" << endl;
+    cout << "1. Добавить трубу" << endl;
+    cout << "2. Добавить компрессорную станцию" << endl;
+    cout << "3. Просмотр всех объектов" << endl;
+    cout << "4. Редактировать трубу" << endl;
+    cout << "5. Редактировать компрессорную станцию" << endl;
+    cout << "6. Поиск труб" << endl;
+    cout << "7. Поиск компрессорных станций" << endl;
+    cout << "8. Пакетное редактирование труб" << endl;
+    cout << "9. Сохранить данные" << endl;
+    cout << "10. Загрузить данные" << endl;
+    cout << "0. Выход" << endl;
+    cout << "Выберите действие: ";
 }
 
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
+int main() {
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    setlocale(LC_ALL, "Russian");
 
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
+    Logirovanie::log("Программа запущена");
+
+    Sistema sistema;
+
+    while (true) {
+        Pokazat_menu();
+        int vibor;
+        cin >> vibor;
+
+        switch (vibor) {
+        case 1: sistema.Dobavit_trubu(); break;
+        case 2: sistema.Dobavit_KS(); break;
+        case 3: sistema.Pokazat_vse_obekty(); break;
+        case 4: sistema.Redaktirovat_trubu(); break;
+        case 5: sistema.Redaktirovat_KS(); break;
+        case 6: sistema.Poisk_trub(); break;
+        case 7: sistema.Poisk_KS(); break;
+        case 8: sistema.Paketnoe_redaktirovanie_trub(); break;
+        case 9: sistema.Sohranit_dannye(); break;
+        case 10: sistema.Zagruzit_dannye(); break;
+        case 0:
+            Logirovanie::log("Выход из программы");
+            cout << "Выход из программы!" << endl;
+            return 0;
+        default:
+            cout << "Неверный выбор!" << endl;
+            break;
+        }
+    }
+
+    return 0;
+}

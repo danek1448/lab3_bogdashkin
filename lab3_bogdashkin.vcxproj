@@ -123,7 +123,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cs.cpp" />
+    <ClCompile Include="instruments.cpp" />
     <ClCompile Include="lab3_bogdashkin.cpp" />
+    <ClCompile Include="logirovanie.cpp" />
+    <ClCompile Include="sistema.cpp" />
+    <ClCompile Include="truba.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cs.h" />
+    <ClInclude Include="instruments.h" />
+    <ClInclude Include="logirovanie.h" />
+    <ClInclude Include="sistema.h" />
+    <ClInclude Include="truba.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
