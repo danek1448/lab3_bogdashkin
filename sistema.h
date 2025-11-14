@@ -8,6 +8,7 @@
 #include "truba.h"
 #include "cs.h"
 #include "logirovanie.h"
+#include "soedinenie.h"
 
 using namespace std;
 
@@ -15,6 +16,7 @@ class Sistema {
 private:
     unordered_map<int, Truba> truby;
     unordered_map<int, Kompressornaya_stantsiya> kompressornye_stantsii;
+    Gazoset gazoset;
     int sleduyushiy_id_truba;
     int sleduyushiy_id_ks;
 
@@ -30,6 +32,11 @@ public:
     void Paketnoe_redaktirovanie_trub();
     void Sohranit_dannye();
     void Zagruzit_dannye();
+
+    void Soedinit_KS();
+    void Udalit_soedinenie();
+    void Pokazat_set();
+    void Topologicheskaya_sortirovka();
 };
 
 #endif

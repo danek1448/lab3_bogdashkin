@@ -11,7 +11,7 @@ Sistema::Sistema() : sleduyushiy_id_truba(1), sleduyushiy_id_ks(1) {}
 void Sistema::Dobavit_trubu() {
     Truba novaya_truba;
     cin.ignore((numeric_limits<streamsize>::max)(), '\n');
-    novaya_truba.read();
+    cin >> novaya_truba;
     truby[sleduyushiy_id_truba++] = novaya_truba;
     Logirovanie::log("Добавлена труба с ID: " + to_string(sleduyushiy_id_truba - 1));
     cout << "Труба успешно добавлена с ID: " << sleduyushiy_id_truba - 1 << endl;
@@ -20,7 +20,7 @@ void Sistema::Dobavit_trubu() {
 void Sistema::Dobavit_KS() {
     Kompressornaya_stantsiya novaya_ks;
     cin.ignore((numeric_limits<streamsize>::max)(), '\n');
-    novaya_ks.read();
+    cin >> novaya_ks;
     kompressornye_stantsii[sleduyushiy_id_ks++] = novaya_ks;
     Logirovanie::log("Добавлена КС с ID: " + to_string(sleduyushiy_id_ks - 1));
     cout << "Компрессорная станция успешно добавлена с ID: " << sleduyushiy_id_ks - 1 << endl;
@@ -34,7 +34,7 @@ void Sistema::Pokazat_vse_obekty() const {
     else {
         for (const auto& pair : truby) {
             cout << "ID: " << pair.first << endl;
-            pair.second.print();
+            cout << pair.second;
         }
     }
 
@@ -45,7 +45,7 @@ void Sistema::Pokazat_vse_obekty() const {
     else {
         for (const auto& pair : kompressornye_stantsii) {
             cout << "ID: " << pair.first << endl;
-            pair.second.print();
+            cout << pair.second;
         }
     }
     Logirovanie::log("Просмотр всех объектов");
@@ -161,7 +161,7 @@ void Sistema::Poisk_trub() {
     cout << "\nНайденные трубы:" << endl;
     for (int id : naydennye_id) {
         cout << "ID: " << id << endl;
-        truby[id].print();
+        cout << truby[id];
     }
     Logirovanie::log("Выполнен поиск труб. Найдено: " + to_string(naydennye_id.size()) + " объектов");
 }
@@ -215,7 +215,7 @@ void Sistema::Poisk_KS() {
     cout << "\nНайденные компрессорные станции:" << endl;
     for (int id : naydennye_id) {
         cout << "ID: " << id << endl;
-        kompressornye_stantsii[id].print();
+        cout << kompressornye_stantsii[id];
         cout << "Процент незадействованных цехов: " << kompressornye_stantsii[id].getProcentNeispolzovannyh() << "%" << endl;
     }
     Logirovanie::log("Выполнен поиск КС. Найдено: " + to_string(naydennye_id.size()) + " объектов");
@@ -336,4 +336,115 @@ void Sistema::Zagruzit_dannye() {
     for (const auto& ks : vektor_ks) kompressornye_stantsii[sleduyushiy_id_ks++] = ks;
 
     Logirovanie::log("Загрузка данных из файла: " + imya_faila);
+}
+
+void Sistema::Soedinit_KS() {
+    if (kompressornye_stantsii.size() < 2) {
+        cout << "Для соединения нужно как минимум 2 КС!" << endl;
+        return;
+    }
+
+    cout << "Доступные КС (ID): ";
+    for (const auto& pair : kompressornye_stantsii)
+        cout << pair.first << " ";
+    cout << endl;
+
+    cout << "Введите ID КС входа: ";
+    int input_id = Proverka_in(1);
+    if (kompressornye_stantsii.find(input_id) == kompressornye_stantsii.end()) {
+        cout << "КС с ID " << input_id << " не найдена!" << endl;
+        return;
+    }
+
+    cout << "Введите ID КС выхода: ";
+    int output_id = Proverka_in(1);
+    if (kompressornye_stantsii.find(output_id) == kompressornye_stantsii.end()) {
+        cout << "КС с ID " << output_id << " не найдена!" << endl;
+        return;
+    }
+
+    cout << "Введите диаметр трубы (500, 700, 1000, 1400): ";
+    int diameter = Proverka_in(500);
+
+    int pipe_id = gazoset.find_available_pipe(truby, diameter);
+
+    if (pipe_id == -1) {
+        cout << "Свободной трубы с диаметром " << diameter << " мм не найдено." << endl;
+        cout << "Создать новую трубу? (1 - да, 0 - нет): ";
+        int choice = Proverka_in(0, 1);
+
+        if (choice == 1) {
+            Dobavit_trubu();
+            pipe_id = sleduyushiy_id_truba - 1; 
+        }
+        else {
+            return;
+        }
+    }
+
+    if (gazoset.add_connection(pipe_id, input_id, output_id, diameter)) {
+        Logirovanie::log("Создано соединение: КС " + to_string(input_id) +
+            " -> КС " + to_string(output_id) + " (труба " +
+            to_string(pipe_id) + ")");
+    }
+}
+
+void Sistema::Udalit_soedinenie() {
+    if (gazoset.get_connections().empty()) {
+        cout << "Нет соединений для удаления!" << endl;
+        return;
+    }
+
+    cout << "Введите ID КС входа: ";
+    int input_id = Proverka_in(1);
+    cout << "Введите ID КС выхода: ";
+    int output_id = Proverka_in(1);
+
+    if (gazoset.remove_connection(input_id, output_id)) {
+        Logirovanie::log("Удалено соединение: КС " + to_string(input_id) +
+            " -> КС " + to_string(output_id));
+    }
+}
+
+void Sistema::Pokazat_set() {
+    const vector<Connection>& connections = gazoset.get_connections();
+
+    if (connections.empty()) {
+        cout << "Газосеть не содержит соединений!" << endl;
+        return;
+    }
+
+    cout << "\nГАЗОСЕТЬ" << endl;
+    cout << "Всего соединений: " << connections.size() << endl;
+
+    for (auto it = connections.begin(); it != connections.end(); ++it) {
+        const Connection& conn = *it;
+        cout << "КС " << conn.input_cs_id << " -> КС " << conn.output_cs_id
+            << " (труба " << conn.pipe_id << ", диаметр " << conn.diameter << " мм)" << endl;
+    }
+}
+
+void Sistema::Topologicheskaya_sortirovka() {
+    if (kompressornye_stantsii.empty()) {
+        cout << "Нет компрессорных станций для сорта!" << endl;
+        return;
+    }
+
+    vector<int> sorted = gazoset.topological_sort(kompressornye_stantsii);
+
+    if (sorted.empty()) {
+        cout << "Топологическая сорт невозможна из-за циклов в графе!" << endl;
+        return;
+    }
+
+    cout << "\nТопологическая сортировка КС:" << endl;
+
+    for (size_t i = 0; i < sorted.size(); ++i) {
+        int cs_id = sorted[i];
+        const auto& ks = kompressornye_stantsii.at(cs_id);
+        cout << i + 1 << ". КС " << cs_id << " - " << ks.getName() << endl;
+    }
+
+    Logirovanie::log("Выполнена топологическая сорт " +
+        to_string(sorted.size()) + " КС");
 }
