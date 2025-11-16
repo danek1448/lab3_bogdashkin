@@ -5,20 +5,19 @@
 #include <unordered_map>
 #include <queue>
 #include <algorithm>
+#include <iostream>
 #include "truba.h"
 #include "cs.h"
-#include <iostream>
 
 using namespace std;
 
 struct Connection {
     int pipe_id;
-    int input_cs_id;
-    int output_cs_id;
-    int diameter;
+    int cs_id;           
+    bool is_input;      
 
-    Connection(int p_id, int in_id, int out_id, int diam)
-        : pipe_id(p_id), input_cs_id(in_id), output_cs_id(out_id), diameter(diam) {
+    Connection(int p_id, int cs_id, bool input)
+        : pipe_id(p_id), cs_id(cs_id), is_input(input) {
     }
 };
 
@@ -28,17 +27,25 @@ private:
     vector<int> available_diameters = { 500, 700, 1000, 1400 };
 
 public:
-    bool add_connection(int pipe_id, int input_cs_id, int output_cs_id, int diameter);
+    bool add_connection(int pipe_id, int cs_id, bool is_input);
 
-    bool remove_connection(int input_cs_id, int output_cs_id);
+    bool remove_connection(int pipe_id, int cs_id);
 
     bool remove_pipe(int pipe_id);
+
+    bool remove_cs(int cs_id);
 
     vector<int> topological_sort(const unordered_map<int, Kompressornaya_stantsiya>& cs_dict);
 
     int find_available_pipe(const unordered_map<int, Truba>& pipes, int diameter);
 
-    const vector<Connection>& get_connections() const { return connections; }
+    vector<Connection> get_connections_for_pipe(int pipe_id) const;
+
+    vector<Connection> get_connections_for_cs(int cs_id) const;
+
+    const vector<Connection>& get_all_connections() const { return connections; }
+
+    unordered_map<int, vector<int>> get_graph() const;
 
     void clear_connections() { connections.clear(); }
 };

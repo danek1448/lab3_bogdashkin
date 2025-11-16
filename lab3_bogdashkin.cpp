@@ -17,10 +17,12 @@ void Pokazat_menu() {
     cout << "8. Пакетное редактирование труб" << endl;
     cout << "9. Сохранить данные" << endl;
     cout << "10. Загрузить данные" << endl;
-    cout << "11. Соединить КС" << endl;
+    cout << "11. Соединить трубу с КС" << endl;
     cout << "12. Удалить соединение" << endl;
     cout << "13. Показать сеть" << endl;
     cout << "14. Топологическая сортировка" << endl;
+    cout << "15. Удалить все соединения с трубой" << endl;
+    cout << "16. Удалить все соединения с КС" << endl;
     cout << "0. Выход" << endl;
     cout << "Выберите действие: ";
 }
@@ -50,10 +52,12 @@ int main() {
         case 8: sistema.Paketnoe_redaktirovanie_trub(); break;
         case 9: sistema.Sohranit_dannye(); break;
         case 10: sistema.Zagruzit_dannye(); break;
-        case 11: sistema.Soedinit_KS(); break;
+        case 11: sistema.Soedinit_KS_s_truboy(); break;
         case 12: sistema.Udalit_soedinenie(); break;
         case 13: sistema.Pokazat_set(); break;
         case 14: sistema.Topologicheskaya_sortirovka(); break;
+        case 15: sistema.Udalit_vse_soedineniya_s_truboy(); break;
+        case 16: sistema.Udalit_vse_soedineniya_s_KS(); break;
         case 0:
             Logirovanie::log("Выход из программы");
             cout << "Выход из программы!" << endl;

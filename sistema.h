@@ -33,10 +33,13 @@ public:
     void Sohranit_dannye();
     void Zagruzit_dannye();
 
-    void Soedinit_KS();
+    void Soedinit_KS_s_truboy();
     void Udalit_soedinenie();
     void Pokazat_set();
     void Topologicheskaya_sortirovka();
+
+    void Udalit_vse_soedineniya_s_truboy();
+    void Udalit_vse_soedineniya_s_KS();
 };
 
 #endif
