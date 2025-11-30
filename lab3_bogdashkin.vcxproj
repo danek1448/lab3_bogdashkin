@@ -124,6 +124,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cs.cpp" />
+    <ClCompile Include="gazoset.cpp" />
     <ClCompile Include="instruments.cpp" />
     <ClCompile Include="lab3_bogdashkin.cpp" />
     <ClCompile Include="logirovanie.cpp" />
@@ -133,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cs.h" />
+    <ClInclude Include="gazoset.h" />
     <ClInclude Include="instruments.h" />
     <ClInclude Include="logirovanie.h" />
     <ClInclude Include="sistema.h" />

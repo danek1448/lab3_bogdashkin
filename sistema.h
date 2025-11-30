@@ -8,14 +8,12 @@
 #include "truba.h"
 #include "cs.h"
 #include "logirovanie.h"
-#include "soedinenie.h"
+#include "gazoset.h"
 
 using namespace std;
 
 class Sistema {
 private:
-    unordered_map<int, Truba> truby;
-    unordered_map<int, Kompressornaya_stantsiya> kompressornye_stantsii;
     Gazoset gazoset;
     int sleduyushiy_id_truba;
     int sleduyushiy_id_ks;
@@ -27,19 +25,19 @@ public:
     void Pokazat_vse_obekty() const;
     void Redaktirovat_trubu();
     void Redaktirovat_KS();
+    void Udalit_trubu();
+    void Udalit_KS();
     void Poisk_trub();
     void Poisk_KS();
     void Paketnoe_redaktirovanie_trub();
     void Sohranit_dannye();
     void Zagruzit_dannye();
 
-    void Soedinit_KS_s_truboy();
+    void Soedinit_KS();
+    void Pokazat_soedineniya() const;
     void Udalit_soedinenie();
-    void Pokazat_set();
     void Topologicheskaya_sortirovka();
-
-    void Udalit_vse_soedineniya_s_truboy();
-    void Udalit_vse_soedineniya_s_KS();
+    void Pokazat_gazoset() const;  
 };
 
 #endif

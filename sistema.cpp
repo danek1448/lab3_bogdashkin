@@ -1,551 +1,386 @@
-#include "sistema.h"
+п»ї#include "sistema.h"
 #include "instruments.h"
+#include "soedinenie.h"
 #include <iostream>
 #include <limits>
 #include <algorithm>
 #include <string>
+#include <fstream>
+#include <unordered_set>
+
 using namespace std;
 
 Sistema::Sistema() : sleduyushiy_id_truba(1), sleduyushiy_id_ks(1) {}
 
 void Sistema::Dobavit_trubu() {
     Truba novaya_truba;
-    cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cout << "Р’РІРµРґРёС‚Рµ РґР°РЅРЅС‹Рµ РґР»СЏ РЅРѕРІРѕР№ С‚СЂСѓР±С‹:" << endl;
     cin >> novaya_truba;
-    truby[sleduyushiy_id_truba++] = novaya_truba;
-    Logirovanie::log("Добавлена труба с ID: " + to_string(sleduyushiy_id_truba - 1));
-    cout << "Труба успешно добавлена с ID: " << sleduyushiy_id_truba - 1 << endl;
+    gazoset.addPipe(novaya_truba, sleduyushiy_id_truba);
+    Logirovanie::log("Р”РѕР±Р°РІР»РµРЅР° С‚СЂСѓР±Р° СЃ ID: " + to_string(sleduyushiy_id_truba));
+    cout << "РўСЂСѓР±Р° СѓСЃРїРµС€РЅРѕ РґРѕР±Р°РІР»РµРЅР° СЃ ID: " << sleduyushiy_id_truba++ << endl;
 }
 
 void Sistema::Dobavit_KS() {
     Kompressornaya_stantsiya novaya_ks;
-    cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cout << "Р’РІРµРґРёС‚Рµ РґР°РЅРЅС‹Рµ РґР»СЏ РЅРѕРІРѕР№ РљРЎ:" << endl;
     cin >> novaya_ks;
-    kompressornye_stantsii[sleduyushiy_id_ks++] = novaya_ks;
-    Logirovanie::log("Добавлена КС с ID: " + to_string(sleduyushiy_id_ks - 1));
-    cout << "Компрессорная станция успешно добавлена с ID: " << sleduyushiy_id_ks - 1 << endl;
+    gazoset.addCS(novaya_ks, sleduyushiy_id_ks);
+    Logirovanie::log("Р”РѕР±Р°РІР»РµРЅР° РљРЎ СЃ ID: " + to_string(sleduyushiy_id_ks));
+    cout << "РљРѕРјРїСЂРµСЃСЃРѕСЂРЅР°СЏ СЃС‚Р°РЅС†РёСЏ СѓСЃРїРµС€РЅРѕ РґРѕР±Р°РІР»РµРЅР° СЃ ID: " << sleduyushiy_id_ks++ << endl;
 }
 
 void Sistema::Pokazat_vse_obekty() const {
-    cout << "\nТРУБЫ" << endl;
-    if (truby.empty()) {
-        cout << "Трубы отсутствуют" << endl;
-    }
-    else {
-        for (const auto& pair : truby) {
-            cout << "ID: " << pair.first << endl;
-            cout << pair.second;
-        }
-    }
+    cout << gazoset;
+    Logirovanie::log("РџСЂРѕСЃРјРѕС‚СЂ РІСЃРµС… РѕР±СЉРµРєС‚РѕРІ");
+}
 
-    cout << "\nКОМПРЕССОРНЫЕ СТАНЦИИ" << endl;
-    if (kompressornye_stantsii.empty()) {
-        cout << "Компрессорные станции отсутствуют" << endl;
-    }
-    else {
-        for (const auto& pair : kompressornye_stantsii) {
-            cout << "ID: " << pair.first << endl;
-            cout << pair.second;
-        }
-    }
-    Logirovanie::log("Просмотр всех объектов");
+void Sistema::Pokazat_gazoset() const {
+    cout << gazoset;
 }
 
 void Sistema::Redaktirovat_trubu() {
-    if (truby.empty()) {
-        cout << "Нет доступных труб для редактирования" << endl;
+    auto& pipes = gazoset.getPipes();
+    if (pipes.empty()) {
+        cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… С‚СЂСѓР± РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ" << endl;
         return;
     }
 
-    cout << "Доступные трубы (ID): ";
-    for (const auto& pair : truby) cout << pair.first << " ";
-    cout << "\nВведите ID трубы для редактирования: ";
+    cout << "Р”РѕСЃС‚СѓРїРЅС‹Рµ С‚СЂСѓР±С‹ (ID): ";
+    for (const auto& pair : pipes) cout << pair.first << " ";
+    cout << "\nР’РІРµРґРёС‚Рµ ID С‚СЂСѓР±С‹ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ: ";
 
-    int id; cin >> id;
-    if (truby.find(id) == truby.end()) {
-        cout << "Труба с указанным ID не найдена!" << endl;
+    int id = Proverka_in(1);
+    if (pipes.find(id) == pipes.end()) {
+        cout << "РўСЂСѓР±Р° СЃ СѓРєР°Р·Р°РЅРЅС‹Рј ID РЅРµ РЅР°Р№РґРµРЅР°!" << endl;
         return;
     }
 
-    cout << "Текущий статус: " << (truby[id].isRemont() ? "В ремонте" : "Работает") << endl;
-    cout << "Введите новый статус (1 - в ремонте, 0 - работает): ";
-    int status; cin >> status;
-    bool noviy_status = (status == 1);
+    if (Link::IsPipeUsed(id, gazoset.getConnections())) {
+        cout << "Р’РЅРёРјР°РЅРёРµ: СЌС‚Р° С‚СЂСѓР±Р° РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ СЃРѕРµРґРёРЅРµРЅРёРё!" << endl;
+        cout << "Р’С‹ РјРѕР¶РµС‚Рµ РёР·РјРµРЅРёС‚СЊ С‚РѕР»СЊРєРѕ СЃС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р°." << endl;
+    }
 
-    truby[id].setRemont(noviy_status);
-    Logirovanie::log("Изменен статус трубы ID: " + to_string(id) + " на: " + (noviy_status ? "в ремонте" : "работает"));
-    cout << "Статус трубы успешно изменен!" << endl;
+    cout << "РўРµРєСѓС‰РёР№ СЃС‚Р°С‚СѓСЃ: " << (pipes[id].isRemont() ? "Р’ СЂРµРјРѕРЅС‚Рµ" : "Р Р°Р±РѕС‚Р°РµС‚") << endl;
+    cout << "Р’РІРµРґРёС‚Рµ РЅРѕРІС‹Р№ СЃС‚Р°С‚СѓСЃ (1 - РІ СЂРµРјРѕРЅС‚Рµ, 0 - СЂР°Р±РѕС‚Р°РµС‚): ";
+    int status = Proverka_in(0, 1);
+
+    pipes[id].setRemont(status == 1);
+    Logirovanie::log("РР·РјРµРЅРµРЅ СЃС‚Р°С‚СѓСЃ С‚СЂСѓР±С‹ ID: " + to_string(id) + " РЅР°: " + (status == 1 ? "РІ СЂРµРјРѕРЅС‚Рµ" : "СЂР°Р±РѕС‚Р°РµС‚"));
+    cout << "РЎС‚Р°С‚СѓСЃ С‚СЂСѓР±С‹ СѓСЃРїРµС€РЅРѕ РёР·РјРµРЅРµРЅ!" << endl;
 }
 
 void Sistema::Redaktirovat_KS() {
-    if (kompressornye_stantsii.empty()) {
-        cout << "Нет доступных компрессорных станций для редактирования" << endl;
+    auto& cs_dict = gazoset.getCS();
+    if (cs_dict.empty()) {
+        cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РєРѕРјРїСЂРµСЃСЃРѕСЂРЅС‹С… СЃС‚Р°РЅС†РёР№ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ" << endl;
         return;
     }
 
-    cout << "Доступные КС (ID): ";
-    for (const auto& pair : kompressornye_stantsii) cout << pair.first << " ";
-    cout << "\nВведите ID КС для редактирования: ";
+    cout << "Р”РѕСЃС‚СѓРїРЅС‹Рµ РљРЎ (ID): ";
+    for (const auto& pair : cs_dict) cout << pair.first << " ";
+    cout << "\nР’РІРµРґРёС‚Рµ ID РљРЎ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ: ";
 
-    int id; cin >> id;
-    if (kompressornye_stantsii.find(id) == kompressornye_stantsii.end()) {
-        cout << "КС с указанным ID не найдена!" << endl;
+    int id = Proverka_in(1);
+    if (cs_dict.find(id) == cs_dict.end()) {
+        cout << "РљРЎ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј ID РЅРµ РЅР°Р№РґРµРЅР°!" << endl;
         return;
     }
 
-    cout << "1. Запустить цех" << endl;
-    cout << "2. Остановить цех" << endl;
-    cout << "Выберите действие: ";
+    cout << "РўРµРєСѓС‰РµРµ СЃРѕСЃС‚РѕСЏРЅРёРµ РљРЎ " << id << ":" << endl;
+    cout << cs_dict[id];
 
-    int vibor; cin >> vibor;
+    cout << "1. Р—Р°РїСѓСЃС‚РёС‚СЊ С†РµС…" << endl;
+    cout << "2. РћСЃС‚Р°РЅРѕРІРёС‚СЊ С†РµС…" << endl;
+    cout << "Р’С‹Р±РµСЂРёС‚Рµ РґРµР№СЃС‚РІРёРµ: ";
+    int vibor = Proverka_in(1, 2);
+
     if (vibor == 1) {
-        kompressornye_stantsii[id].zapustit_ceh();
-        Logirovanie::log("Запущен цех на КС ID: " + to_string(id));
+        cs_dict[id].zapustit_ceh();
+        Logirovanie::log("Р—Р°РїСѓС‰РµРЅ С†РµС… РЅР° РљРЎ ID: " + to_string(id));
+        cout << "Р¦РµС… Р·Р°РїСѓС‰РµРЅ! РўРµРїРµСЂСЊ СЂР°Р±РѕС‚Р°РµС‚ " << cs_dict[id].getVrabote() << " С†РµС…РѕРІ" << endl;
     }
     else if (vibor == 2) {
-        kompressornye_stantsii[id].ostanovit_ceh();
-        Logirovanie::log("Остановлен цех на КС ID: " + to_string(id));
+        cs_dict[id].ostanovit_ceh();
+        Logirovanie::log("РћСЃС‚Р°РЅРѕРІР»РµРЅ С†РµС… РЅР° РљРЎ ID: " + to_string(id));
+        cout << "Р¦РµС… РѕСЃС‚Р°РЅРѕРІР»РµРЅ! РўРµРїРµСЂСЊ СЂР°Р±РѕС‚Р°РµС‚ " << cs_dict[id].getVrabote() << " С†РµС…РѕРІ" << endl;
     }
-    else {
-        cout << "Неверный выбор!" << endl;
+}
+
+void Sistema::Udalit_trubu() {
+    auto& pipes = gazoset.getPipes();
+    if (pipes.empty()) {
+        cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… С‚СЂСѓР± РґР»СЏ СѓРґР°Р»РµРЅРёСЏ" << endl;
+        return;
     }
+
+    cout << "Р”РѕСЃС‚СѓРїРЅС‹Рµ С‚СЂСѓР±С‹ (ID): ";
+    for (const auto& pair : pipes) cout << pair.first << " ";
+    cout << "\nР’РІРµРґРёС‚Рµ ID С‚СЂСѓР±С‹ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ: ";
+
+    int id = Proverka_in(1);
+
+    if (Link::IsPipeUsed(id, gazoset.getConnections())) {
+        cout << "РћС€РёР±РєР°: С‚СЂСѓР±Р° РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ СЃРѕРµРґРёРЅРµРЅРёРё!" << endl;
+        cout << "РЎРЅР°С‡Р°Р»Р° СѓРґР°Р»РёС‚Рµ СЃРѕРµРґРёРЅРµРЅРёРµ, Р·Р°С‚РµРј СѓРґР°Р»РёС‚Рµ С‚СЂСѓР±Сѓ." << endl;
+        return;
+    }
+
+    gazoset.delete_pipe(id);
+    Logirovanie::log("РЈРґР°Р»РµРЅР° С‚СЂСѓР±Р° ID: " + to_string(id));
+}
+
+void Sistema::Udalit_KS() {
+    auto& cs_dict = gazoset.getCS();
+    if (cs_dict.empty()) {
+        cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… РљРЎ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ" << endl;
+        return;
+    }
+
+    cout << "Р”РѕСЃС‚СѓРїРЅС‹Рµ РљРЎ (ID): ";
+    for (const auto& pair : cs_dict) cout << pair.first << " ";
+    cout << "\nР’РІРµРґРёС‚Рµ ID РљРЎ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ: ";
+
+    int id = Proverka_in(1);
+    gazoset.delete_CS(id);
+    Logirovanie::log("РЈРґР°Р»РµРЅР° РљРЎ ID: " + to_string(id));
 }
 
 void Sistema::Poisk_trub() {
-    if (truby.empty()) {
-        cout << "Нет доступных труб для поиска" << endl;
-        return;
-    }
-
-    cout << "Критерии поиска труб:" << endl;
-    cout << "1. По названию" << endl;
-    cout << "2. По статусу ремонта" << endl;
-    cout << "Выберите критерий: ";
-
-    int kriteriy; cin >> kriteriy;
-    vector<int> naydennye_id;
-
-    if (kriteriy == 1) {
-        cout << "Введите название для поиска: ";
-        cin.ignore();
-        string iskomoe_nazvanie;
-        getline(cin, iskomoe_nazvanie);
-
-        for (const auto& pair : truby) {
-            if (pair.second.getName().find(iskomoe_nazvanie) != string::npos) {
-                naydennye_id.push_back(pair.first);
-            }
-        }
-    }
-    else if (kriteriy == 2) {
-        cout << "Введите статус ремонта (1 - в ремонте, 0 - работает): ";
-        int status; cin >> status;
-        bool iskomy_status = (status == 1);
-
-        for (const auto& pair : truby) {
-            if (pair.second.isRemont() == iskomy_status) {
-                naydennye_id.push_back(pair.first);
-            }
-        }
-    }
-    else {
-        cout << "Неверный критерий!" << endl;
-        return;
-    }
-
-    if (naydennye_id.empty()) {
-        cout << "Трубы по заданному критерию не найдены" << endl;
-        return;
-    }
-
-    cout << "\nНайденные трубы:" << endl;
-    for (int id : naydennye_id) {
-        cout << "ID: " << id << endl;
-        cout << truby[id];
-    }
-    Logirovanie::log("Выполнен поиск труб. Найдено: " + to_string(naydennye_id.size()) + " объектов");
+    gazoset.PipesFiltering();
+    Logirovanie::log("Р’С‹РїРѕР»РЅРµРЅ РїРѕРёСЃРє С‚СЂСѓР±");
 }
 
 void Sistema::Poisk_KS() {
-    if (kompressornye_stantsii.empty()) {
-        cout << "Нет доступных компрессорных станций для поиска" << endl;
-        return;
-    }
-
-    cout << "Критерии поиска компрессорных станций:" << endl;
-    cout << "1. По названию" << endl;
-    cout << "2. По проценту незадействованных цехов" << endl;
-    cout << "Выберите критерий: ";
-
-    int kriteriy; cin >> kriteriy;
-    vector<int> naydennye_id;
-
-    if (kriteriy == 1) {
-        cout << "Введите название для поиска: ";
-        cin.ignore();
-        string iskomoe_nazvanie;
-        getline(cin, iskomoe_nazvanie);
-
-        for (const auto& pair : kompressornye_stantsii) {
-            if (pair.second.getName().find(iskomoe_nazvanie) != string::npos) {
-                naydennye_id.push_back(pair.first);
-            }
-        }
-    }
-    else if (kriteriy == 2) {
-        cout << "Введите минимальный процент незадействованных цехов: ";
-        double min_procent; cin >> min_procent;
-
-        for (const auto& pair : kompressornye_stantsii) {
-            if (pair.second.getProcentNeispolzovannyh() >= min_procent) {
-                naydennye_id.push_back(pair.first);
-            }
-        }
-    }
-    else {
-        cout << "Неверный критерий!" << endl;
-        return;
-    }
-
-    if (naydennye_id.empty()) {
-        cout << "Компрессорные станции по заданному критерию не найдены" << endl;
-        return;
-    }
-
-    cout << "\nНайденные компрессорные станции:" << endl;
-    for (int id : naydennye_id) {
-        cout << "ID: " << id << endl;
-        cout << kompressornye_stantsii[id];
-        cout << "Процент незадействованных цехов: " << kompressornye_stantsii[id].getProcentNeispolzovannyh() << "%" << endl;
-    }
-    Logirovanie::log("Выполнен поиск КС. Найдено: " + to_string(naydennye_id.size()) + " объектов");
+    gazoset.CSFiltering();
+    Logirovanie::log("Р’С‹РїРѕР»РЅРµРЅ РїРѕРёСЃРє РљРЎ");
 }
 
 void Sistema::Paketnoe_redaktirovanie_trub() {
-    if (truby.empty()) {
-        cout << "Нет доступных труб для пакетного редактирования" << endl;
+    auto& pipes = gazoset.getPipes();
+    if (pipes.empty()) {
+        cout << "РќРµС‚ РґРѕСЃС‚СѓРїРЅС‹С… С‚СЂСѓР± РґР»СЏ РїР°РєРµС‚РЅРѕРіРѕ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ" << endl;
         return;
     }
 
-    vector<int> vozmozhnye_id;
-    cout << "Выберите трубы для пакетного редактирования:" << endl;
-    cout << "1. Все трубы" << endl;
-    cout << "2. Только трубы в ремонте" << endl;
-    cout << "3. Только работающие трубы" << endl;
-    cout << "Выберите опцию: ";
+    cout << "Р’С‹Р±РµСЂРёС‚Рµ С‚СЂСѓР±С‹ РґР»СЏ РїР°РєРµС‚РЅРѕРіРѕ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ:" << endl;
+    cout << "1. Р’СЃРµ С‚СЂСѓР±С‹" << endl;
+    cout << "2. РўРѕР»СЊРєРѕ С‚СЂСѓР±С‹ РІ СЂРµРјРѕРЅС‚Рµ" << endl;
+    cout << "3. РўРѕР»СЊРєРѕ СЂР°Р±РѕС‚Р°СЋС‰РёРµ С‚СЂСѓР±С‹" << endl;
+    cout << "Р’С‹Р±РµСЂРёС‚Рµ РѕРїС†РёСЋ: ";
 
-    int opciya; cin >> opciya;
+    int opciya = Proverka_in(1, 3);
+    unordered_set<int> vybrannye_id;
 
-    for (const auto& pair : truby) {
-        if (opciya == 1 || (opciya == 2 && pair.second.isRemont()) || (opciya == 3 && !pair.second.isRemont())) {
-            vozmozhnye_id.push_back(pair.first);
-        }
-    }
-
-    if (vozmozhnye_id.empty()) {
-        cout << "Нет труб, соответствующих выбранному критерию" << endl;
-        return;
-    }
-
-    vector<int> vybrannye_id;
-    cout << "\nДоступные трубы для редактирования:" << endl;
-    for (int id : vozmozhnye_id) {
-        cout << "ID: " << id << " - " << truby[id].getName()
-            << " (" << (truby[id].isRemont() ? "в ремонте" : "работает") << ")" << endl;
-    }
-
-    cout << "Введите ID труб для редактирования (по одному, -1 для завершения): " << endl;
-    while (true) {
-        int id; cin >> id;
-        if (id == -1) break;
-
-        if (find(vozmozhnye_id.begin(), vozmozhnye_id.end(), id) != vozmozhnye_id.end()) {
-            vybrannye_id.push_back(id);
-            cout << "Труба " << id << " добавлена в список редактирования" << endl;
-        }
-        else {
-            cout << "Труба с ID " << id << " не найдена в доступном списке!" << endl;
+    for (const auto& pair : pipes) {
+        if (opciya == 1 ||
+            (opciya == 2 && pair.second.isRemont()) ||
+            (opciya == 3 && !pair.second.isRemont())) {
+            vybrannye_id.insert(pair.first);
         }
     }
 
     if (vybrannye_id.empty()) {
-        cout << "Не выбрано ни одной трубы для редактирования" << endl;
+        cout << "РќРµС‚ С‚СЂСѓР±, СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёС… РІС‹Р±СЂР°РЅРЅРѕРјСѓ РєСЂРёС‚РµСЂРёСЋ" << endl;
         return;
     }
 
-    cout << "\nДействия:" << endl;
-    cout << "1. Изменить статус ремонта" << endl;
-    cout << "2. Удалить выбранные трубы" << endl;
-    cout << "Выберите действие: ";
-
-    int deystvie; cin >> deystvie;
-
-    if (deystvie == 1) {
-        cout << "Введите новый статус (1 - в ремонте, 0 - работает): ";
-        int status; cin >> status;
-        bool noviy_status = (status == 1);
-
-        for (int id : vybrannye_id) {
-            truby[id].setRemont(noviy_status);
+    int used_pipes_count = 0;
+    for (int id : vybrannye_id) {
+        if (Link::IsPipeUsed(id, gazoset.getConnections())) {
+            used_pipes_count++;
         }
-        Logirovanie::log("Пакетное изменение статуса " + to_string(vybrannye_id.size()) + " труб на: " + (noviy_status ? "в ремонте" : "работает"));
-        cout << "Статус " << vybrannye_id.size() << " труб успешно изменен!" << endl;
-    }
-    else if (deystvie == 2) {
-        for (int id : vybrannye_id) {
-            truby.erase(id);
-        }
-        Logirovanie::log("Пакетное удаление " + to_string(vybrannye_id.size()) + " труб");
-        cout << "Удалено " << vybrannye_id.size() << " труб!" << endl;
-    }
-    else {
-        cout << "Неверное действие!" << endl;
-    }
-}
-
-void Sistema::Sohranit_dannye() {
-    cout << "Введите имя файла для сохранения: ";
-    cin.ignore();
-    string imya_faila;
-    getline(cin, imya_faila);
-
-    vector<Truba> vektor_trub;
-    for (const auto& pair : truby) vektor_trub.push_back(pair.second);
-
-    vector<Kompressornaya_stantsiya> vektor_ks;
-    for (const auto& pair : kompressornye_stantsii) vektor_ks.push_back(pair.second);
-
-    Logirovanie::log("Сохранение данных в файл: " + imya_faila);
-}
-
-void Sistema::Zagruzit_dannye() {
-    cout << "Введите имя файла для загрузки: ";
-    cin.ignore();
-    string imya_faila;
-    getline(cin, imya_faila);
-
-    vector<Truba> vektor_trub;
-    vector<Kompressornaya_stantsiya> vektor_ks;
-
-    truby.clear();
-    kompressornye_stantsii.clear();
-    sleduyushiy_id_truba = 1;
-    sleduyushiy_id_ks = 1;
-
-    for (const auto& truba : vektor_trub) truby[sleduyushiy_id_truba++] = truba;
-    for (const auto& ks : vektor_ks) kompressornye_stantsii[sleduyushiy_id_ks++] = ks;
-
-    Logirovanie::log("Загрузка данных из файла: " + imya_faila);
-}
-
-void Sistema::Soedinit_KS_s_truboy() {
-    if (truby.empty() || kompressornye_stantsii.empty()) {
-        cout << "Для соединения нужны как минимум одна труба и одна КС!" << endl;
-        return;
     }
 
-    cout << "Доступные трубы (ID): ";
-    for (const auto& pair : truby)
-        cout << pair.first << " ";
+    if (used_pipes_count > 0) {
+        cout << "Р’РЅРёРјР°РЅРёРµ: " << used_pipes_count << " С‚СЂСѓР± РёСЃРїРѕР»СЊР·СѓСЋС‚СЃСЏ РІ СЃРѕРµРґРёРЅРµРЅРёСЏС…." << endl;
+        cout << "РС… СЃС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р° Р±СѓРґРµС‚ РёР·РјРµРЅРµРЅ, РЅРѕ СЃРѕРµРґРёРЅРµРЅРёСЏ РѕСЃС‚Р°РЅСѓС‚СЃСЏ Р°РєС‚РёРІРЅС‹РјРё." << endl;
+    }
+
+    cout << "Р’С‹Р±СЂР°РЅРЅС‹Рµ С‚СЂСѓР±С‹ (ID): ";
+    for (int id : vybrannye_id) cout << id << " ";
     cout << endl;
 
-    cout << "Доступные КС (ID): ";
-    for (const auto& pair : kompressornye_stantsii)
-        cout << pair.first << " ";
-    cout << endl;
+    cout << "Р’РІРµРґРёС‚Рµ РЅРѕРІС‹Р№ СЃС‚Р°С‚СѓСЃ СЂРµРјРѕРЅС‚Р° (1 - РІ СЂРµРјРѕРЅС‚Рµ, 0 - СЂР°Р±РѕС‚Р°РµС‚): ";
+    int status = Proverka_in(0, 1);
 
-    cout << "Введите ID трубы: ";
-    int pipe_id = Proverka_in(1);
-    if (truby.find(pipe_id) == truby.end()) {
-        cout << "Труба с ID " << pipe_id << " не найдена!" << endl;
-        return;
-    }
+    gazoset.PacketEditPipe(vybrannye_id, status == 1);
+    Logirovanie::log("РџР°РєРµС‚РЅРѕРµ РёР·РјРµРЅРµРЅРёРµ СЃС‚Р°С‚СѓСЃР° " + to_string(vybrannye_id.size()) + " С‚СЂСѓР±");
+}
 
-    cout << "Введите ID КС: ";
-    int cs_id = Proverka_in(1);
-    if (kompressornye_stantsii.find(cs_id) == kompressornye_stantsii.end()) {
-        cout << "КС с ID " << cs_id << " не найдена!" << endl;
-        return;
-    }
-
-    cout << "Тип соединения (1 - вход, 0 - выход): ";
-    int tip = Proverka_in(0, 1);
-    bool is_input = (tip == 1);
-
-    auto connections_for_pipe = gazoset.get_connections_for_pipe(pipe_id);
-
-    if (is_input) {
-        for (const auto& conn : connections_for_pipe) {
-            if (conn.is_input) {
-                cout << "Ошибка: у трубы " << pipe_id << " уже есть вход (КС " << conn.cs_id << ")!" << endl;
-                return;
-            }
-        }
+void Sistema::Soedinit_KS() {
+    Link new_connection;
+    if (new_connection.CreateLink(gazoset.getPipes(), gazoset.getCS(), gazoset.getConnections())) {
+        gazoset.addConnection(new_connection);
+        Logirovanie::log("РЎРѕР·РґР°РЅРѕ СЃРѕРµРґРёРЅРµРЅРёРµ: РљРЎ " + to_string(new_connection.CS_inlet) +
+            " -> РљРЎ " + to_string(new_connection.CS_outlet) +
+            " (С‚СЂСѓР±Р° " + to_string(new_connection.pipeline) + ")");
+        cout << "РЎРѕРµРґРёРЅРµРЅРёРµ СѓСЃРїРµС€РЅРѕ РґРѕР±Р°РІР»РµРЅРѕ РІ РіР°Р·РѕСЃРµС‚СЊ!" << endl;
     }
     else {
-        for (const auto& conn : connections_for_pipe) {
-            if (!conn.is_input) {
-                cout << "Ошибка: у трубы " << pipe_id << " уже есть выход (КС " << conn.cs_id << ")!" << endl;
-                return;
-            }
-        }
+        cout << "РЎРѕР·РґР°РЅРёРµ СЃРѕРµРґРёРЅРµРЅРёСЏ РѕС‚РјРµРЅРµРЅРѕ РёР»Рё Р·Р°РІРµСЂС€РёР»РѕСЃСЊ РѕС€РёР±РєРѕР№." << endl;
     }
+}
 
-    if (gazoset.add_connection(pipe_id, cs_id, is_input)) {
-        Logirovanie::log("Создано соединение: " +
-            string(is_input ? "КС " : "КС ") + to_string(cs_id) +
-            " -> " + string(is_input ? "вход трубы " : "выход трубы ") +
-            to_string(pipe_id));
+void Sistema::Pokazat_soedineniya() const {
+    const auto& connections = gazoset.getConnections();
+    if (connections.empty()) {
+        cout << "РќРµС‚ Р°РєС‚РёРІРЅС‹С… СЃРѕРµРґРёРЅРµРЅРёР№." << endl;
+    }
+    else {
+        cout << "\n=== РђРљРўРР’РќР«Р• РЎРћР•Р”РРќР•РќРРЇ ===" << endl;
+        for (const auto& conn : connections) {
+            cout << "РљРЎ " << conn.CS_inlet << " -> РљРЎ " << conn.CS_outlet
+                << " (С‚СЂСѓР±Р° " << conn.pipeline << ")" << endl;
+        }
+        cout << "Р’СЃРµРіРѕ СЃРѕРµРґРёРЅРµРЅРёР№: " << connections.size() << endl;
     }
 }
 
 void Sistema::Udalit_soedinenie() {
-    if (gazoset.get_all_connections().empty()) {
-        cout << "Нет соединений для удаления!" << endl;
-        return;
-    }
-
-    cout << "Введите ID трубы: ";
-    int pipe_id = Proverka_in(1);
-    cout << "Введите ID КС: ";
-    int cs_id = Proverka_in(1);
-
-    if (gazoset.remove_connection(pipe_id, cs_id)) {
-        Logirovanie::log("Удалено соединение: труба " + to_string(pipe_id) +
-            " - КС " + to_string(cs_id));
-    }
-}
-
-void Sistema::Udalit_vse_soedineniya_s_truboy() {
-    if (truby.empty()) {
-        cout << "Нет доступных труб!" << endl;
-        return;
-    }
-
-    cout << "Доступные трубы (ID): ";
-    for (const auto& pair : truby)
-        cout << pair.first << " ";
-    cout << endl;
-
-    cout << "Введите ID трубы: ";
-    int pipe_id = Proverka_in(1);
-
-    if (truby.find(pipe_id) == truby.end()) {
-        cout << "Труба с ID " << pipe_id << " не найдена!" << endl;
-        return;
-    }
-
-    if (gazoset.remove_pipe(pipe_id)) {
-        Logirovanie::log("Удалены все соединения с трубой " + to_string(pipe_id));
-        cout << "Все соединения с трубой " << pipe_id << " удалены!" << endl;
-    }
-    else {
-        cout << "Соединения с трубой " << pipe_id << " не найдены!" << endl;
-    }
-}
-
-void Sistema::Udalit_vse_soedineniya_s_KS() {
-    if (kompressornye_stantsii.empty()) {
-        cout << "Нет доступных КС!" << endl;
-        return;
-    }
-
-    cout << "Доступные КС (ID): ";
-    for (const auto& pair : kompressornye_stantsii)
-        cout << pair.first << " ";
-    cout << endl;
-
-    cout << "Введите ID КС: ";
-    int cs_id = Proverka_in(1);
-
-    if (kompressornye_stantsii.find(cs_id) == kompressornye_stantsii.end()) {
-        cout << "КС с ID " << cs_id << " не найдена!" << endl;
-        return;
-    }
-
-    if (gazoset.remove_cs(cs_id)) {
-        Logirovanie::log("Удалены все соединения с КС " + to_string(cs_id));
-        cout << "Все соединения с КС " << cs_id << " удалены!" << endl;
-    }
-    else {
-        cout << "Соединения с КС " << cs_id << " не найдены!" << endl;
-    }
-}
-
-void Sistema::Pokazat_set() {
-    const auto& connections = gazoset.get_all_connections();
-
+    auto& connections = gazoset.getConnections();
     if (connections.empty()) {
-        cout << "Газосеть не содержит соединений!" << endl;
+        cout << "РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёР№ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ!" << endl;
         return;
     }
 
-    cout << "\nГазотранспортная сеть" << endl;
+    cout << "РўРµРєСѓС‰РёРµ СЃРѕРµРґРёРЅРµРЅРёСЏ:" << endl;
+    Pokazat_soedineniya();
 
-    unordered_map<int, vector<Connection>> connections_by_pipe;
-    for (const auto& conn : connections) {
-        connections_by_pipe[conn.pipe_id].push_back(conn);
-    }
+    cout << "Р’РІРµРґРёС‚Рµ ID РІС…РѕРґРЅРѕР№ РљРЎ: ";
+    int input_id = Proverka_in(0);
+    cout << "Р’РІРµРґРёС‚Рµ ID РІС‹С…РѕРґРЅРѕР№ РљРЎ: ";
+    int output_id = Proverka_in(0);
 
-    for (const auto& pipe_conns : connections_by_pipe) {
-        int pipe_id = pipe_conns.first;
-        const auto& conns = pipe_conns.second;
-
-        cout << "Труба " << pipe_id;
-        if (truby.find(pipe_id) != truby.end()) {
-            cout << " (\"" << truby.at(pipe_id).getName() << "\")";
-        }
-        cout << ":" << endl;
-
-        string input_cs = "не подключен";
-        string output_cs = "не подключен";
-
-        for (const auto& conn : conns) {
-            if (conn.is_input) {
-                input_cs = "КС " + to_string(conn.cs_id);
-                if (kompressornye_stantsii.find(conn.cs_id) != kompressornye_stantsii.end()) {
-                    input_cs += " (\"" + kompressornye_stantsii.at(conn.cs_id).getName() + "\")";
-                }
-            }
-            else {
-                output_cs = "КС " + to_string(conn.cs_id);
-                if (kompressornye_stantsii.find(conn.cs_id) != kompressornye_stantsii.end()) {
-                    output_cs += " (\"" + kompressornye_stantsii.at(conn.cs_id).getName() + "\")";
-                }
-            }
-        }
-
-        cout << "  Вход: " << input_cs << endl;
-        cout << "  Выход: " << output_cs << endl;
-        cout << endl;
-    }
+    gazoset.delete_connection(input_id, output_id);
+    Logirovanie::log("РЈРґР°Р»РµРЅРѕ СЃРѕРµРґРёРЅРµРЅРёРµ: РљРЎ " + to_string(input_id) +
+        " -> РљРЎ " + to_string(output_id));
 }
 
 void Sistema::Topologicheskaya_sortirovka() {
-    if (kompressornye_stantsii.empty()) {
-        cout << "Нет компрессорных станций для сортировки!" << endl;
+    const auto& cs_dict = gazoset.getCS();
+    const auto& connections = gazoset.getConnections();
+
+    if (cs_dict.empty()) {
+        cout << "РќРµС‚ РєРѕРјРїСЂРµСЃСЃРѕСЂРЅС‹С… СЃС‚Р°РЅС†РёР№ РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё!" << endl;
         return;
     }
 
-    vector<int> sorted = gazoset.topological_sort(kompressornye_stantsii);
-
-    if (sorted.empty()) {
-        cout << "Топологическая сортировка невозможна!" << endl;
-        cout << "Возможные причины:" << endl;
-        cout << "1. В графе есть циклы" << endl;
-        cout << "2. Не все КС соединены в сеть" << endl;
-        cout << "3. Нарушена связность графа" << endl;
+    if (connections.empty()) {
+        cout << "РќРµС‚ СЃРѕРµРґРёРЅРµРЅРёР№ РґР»СЏ РїРѕСЃС‚СЂРѕРµРЅРёСЏ РіСЂР°С„Р°!" << endl;
         return;
     }
 
-    cout << "\nТопологическая сортировка:" << endl;
+    cout << "\n=== РўРћРџРћР›РћР“РР§Р•РЎРљРђРЇ РЎРћР РўРР РћР’РљРђ ===" << endl;
+    TopSort(cs_dict, connections);
+    Logirovanie::log("Р’С‹РїРѕР»РЅРµРЅР° С‚РѕРїРѕР»РѕРіРёС‡РµСЃРєР°СЏ СЃРѕСЂС‚РёСЂРѕРІРєР°");
+}
 
-    for (size_t i = 0; i < sorted.size(); ++i) {
-        int cs_id = sorted[i];
-        const auto& ks = kompressornye_stantsii.at(cs_id);
-        cout << i + 1 << ". КС " << cs_id << " - \"" << ks.getName() << "\"" << endl;
+void Sistema::Sohranit_dannye() {
+    cout << "Р’РІРµРґРёС‚Рµ РёРјСЏ С„Р°Р№Р»Р° РґР»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ: ";
+    cin.ignore();
+    string imya_faila;
+    getline(cin, imya_faila);
+
+    ofstream outfile(imya_faila);
+    if (!outfile.is_open()) {
+        cout << "РћС€РёР±РєР° РѕС‚РєСЂС‹С‚РёСЏ С„Р°Р№Р»Р° РґР»СЏ Р·Р°РїРёСЃРё!" << endl;
+        return;
     }
 
-    Logirovanie::log("Выполнена топологическая сортировка " +
-        to_string(sorted.size()) + " КС");
+    const auto& pipes = gazoset.getPipes();
+    for (const auto& pair : pipes) {
+        outfile << "PIPE " << pair.first << " "
+            << pair.second.getName() << " "
+            << pair.second.getDlina() << " "
+            << pair.second.getDiameter() << " "
+            << (pair.second.isRemont() ? 1 : 0) << endl;
+    }
+
+    const auto& cs_dict = gazoset.getCS();
+    for (const auto& pair : cs_dict) {
+        outfile << "CS " << pair.first << " "
+            << pair.second.getName() << " "
+            << pair.second.getKolCehov() << " "
+            << pair.second.getVrabote() << " "
+            << pair.second.getKlass() << endl;
+    }
+
+    const auto& connections = gazoset.getConnections();
+    for (const auto& conn : connections) {
+        outfile << "LINK " << conn.pipeline << " "
+            << conn.CS_inlet << " " << conn.CS_outlet << endl;
+    }
+
+    outfile.close();
+    Logirovanie::log("РЎРѕС…СЂР°РЅРµРЅРёРµ РґР°РЅРЅС‹С… РІ С„Р°Р№Р»: " + imya_faila);
+    cout << "Р”Р°РЅРЅС‹Рµ СѓСЃРїРµС€РЅРѕ СЃРѕС…СЂР°РЅРµРЅС‹ РІ С„Р°Р№Р» " << imya_faila << endl;
+}
+
+void Sistema::Zagruzit_dannye() {
+    cout << "Р’РІРµРґРёС‚Рµ РёРјСЏ С„Р°Р№Р»Р° РґР»СЏ Р·Р°РіСЂСѓР·РєРё: ";
+    cin.ignore();
+    string imya_faila;
+    getline(cin, imya_faila);
+
+    ifstream infile(imya_faila);
+    if (!infile.is_open()) {
+        cout << "Р¤Р°Р№Р» РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚ РёР»Рё РЅРµРґРѕСЃС‚СѓРїРµРЅ!" << endl;
+        return;
+    }
+
+    gazoset = Gazoset();
+    sleduyushiy_id_truba = 1;
+    sleduyushiy_id_ks = 1;
+
+    string tip;
+    while (infile >> tip) {
+        if (tip == "PIPE") {
+            int id;
+            string name;
+            double dlina;
+            int diameter;
+            int remont;
+
+            infile >> id >> name >> dlina >> diameter >> remont;
+            Truba truba(name, dlina, diameter, remont == 1);
+            gazoset.addPipe(truba, id);
+            if (id >= sleduyushiy_id_truba) {
+                sleduyushiy_id_truba = id + 1;
+            }
+
+        }
+        else if (tip == "CS") {
+            int id;
+            string name;
+            int kol_cehov, vrabote;
+            double klass;
+
+            infile >> id >> name >> kol_cehov >> vrabote >> klass;
+            Kompressornaya_stantsiya ks(name, kol_cehov, vrabote, klass);
+            gazoset.addCS(ks, id);
+            if (id >= sleduyushiy_id_ks) {
+                sleduyushiy_id_ks = id + 1;
+            }
+
+        }
+        else if (tip == "LINK") {
+            int pipe_id, cs_in, cs_out;
+            infile >> pipe_id >> cs_in >> cs_out;
+            Link conn;
+            conn.pipeline = pipe_id;
+            conn.CS_inlet = cs_in;
+            conn.CS_outlet = cs_out;
+            gazoset.addConnection(conn);
+        }
+    }
+
+    infile.close();
+    Logirovanie::log("Р—Р°РіСЂСѓР·РєР° РґР°РЅРЅС‹С… РёР· С„Р°Р№Р»Р°: " + imya_faila);
+    cout << "Р”Р°РЅРЅС‹Рµ СѓСЃРїРµС€РЅРѕ Р·Р°РіСЂСѓР¶РµРЅС‹ РёР· С„Р°Р№Р»Р° " << imya_faila << endl;
+    cout << "Р—Р°РіСЂСѓР¶РµРЅРѕ: " << gazoset.getPipes().size() << " С‚СЂСѓР±, "
+        << gazoset.getCS().size() << " РљРЎ, "
+        << gazoset.getConnections().size() << " СЃРѕРµРґРёРЅРµРЅРёР№" << endl;
 }
