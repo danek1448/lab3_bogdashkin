@@ -11,6 +11,7 @@
 
 using namespace std;
 
+// Реализации функций фильтрации
 bool CheckByDiameter(const Truba& truba, int parameter) {
     return truba.getDiameter() == parameter;
 }
@@ -43,6 +44,39 @@ bool CheckByLess(const Kompressornaya_stantsiya& CS, int percent) {
     return CS.getProcentNeispolzovannyh() <= percent;
 }
 
+// Реализации шаблонных функций фильтрации
+template<typename T>
+unordered_map<int, Truba> FindPipesByFilter(const unordered_map<int, Truba>& Pipeline,
+    bool(*filter)(const Truba&, T), T parameter) {
+    unordered_map<int, Truba> result;
+    for (const auto& s : Pipeline) {
+        if (filter(s.second, parameter)) {
+            result[s.first] = s.second;
+        }
+    }
+    return result;
+}
+
+template<typename T>
+unordered_map<int, Kompressornaya_stantsiya> FindCSByFilter(const unordered_map<int, Kompressornaya_stantsiya>& CS_system,
+    bool(*filter)(const Kompressornaya_stantsiya&, T), T parameter) {
+    unordered_map<int, Kompressornaya_stantsiya> result;
+    for (const auto& s : CS_system) {
+        if (filter(s.second, parameter)) {
+            result[s.first] = s.second;
+        }
+    }
+    return result;
+}
+
+// Явная инстанциация шаблонов для используемых типов
+template unordered_map<int, Truba> FindPipesByFilter<string>(const unordered_map<int, Truba>&, bool(*)(const Truba&, string), string);
+template unordered_map<int, Truba> FindPipesByFilter<bool>(const unordered_map<int, Truba>&, bool(*)(const Truba&, bool), bool);
+template unordered_map<int, Truba> FindPipesByFilter<int>(const unordered_map<int, Truba>&, bool(*)(const Truba&, int), int);
+
+template unordered_map<int, Kompressornaya_stantsiya> FindCSByFilter<string>(const unordered_map<int, Kompressornaya_stantsiya>&, bool(*)(const Kompressornaya_stantsiya&, string), string);
+template unordered_map<int, Kompressornaya_stantsiya> FindCSByFilter<int>(const unordered_map<int, Kompressornaya_stantsiya>&, bool(*)(const Kompressornaya_stantsiya&, int), int);
+
 bool Link::IsPipeUsed(int pipe_id, const vector<Link>& connections) {
     for (const auto& conn : connections) {
         if (conn.pipeline == pipe_id) {
@@ -55,6 +89,7 @@ bool Link::IsPipeUsed(int pipe_id, const vector<Link>& connections) {
 bool Link::CreateLink(unordered_map<int, Truba>& pipes,
     unordered_map<int, Kompressornaya_stantsiya>& cs_dict,
     const vector<Link>& existing_connections) {
+
     if (cs_dict.size() < 2) {
         cout << "Для соединения нужно как минимум 2 КС!" << endl;
         return false;
@@ -139,6 +174,10 @@ bool Link::CreateLink(unordered_map<int, Truba>& pipes,
     return true;
 }
 
+// Вспомогательная функция для DFS
+void dfs(int station, vector<int>& order, unordered_set<int>& visited,
+    const vector<Link>& connections, unordered_set<int>& gray_stations, bool& flag);
+
 void TopSort(const unordered_map<int, Kompressornaya_stantsiya>& CS,
     const vector<Link>& connections) {
     vector<int> sorted_cs;
@@ -168,6 +207,7 @@ void TopSort(const unordered_map<int, Kompressornaya_stantsiya>& CS,
 
 void dfs(int station, vector<int>& order, unordered_set<int>& visited,
     const vector<Link>& connections, unordered_set<int>& gray_stations, bool& flag) {
+
     if (flag) return;
 
     gray_stations.insert(station);

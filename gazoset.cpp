@@ -1,7 +1,7 @@
-﻿#include "gazoset.h"
-#include "instruments.h"
-#include <iostream>
-#include <algorithm>
+﻿#include "gazoset.h"      
+#include "instruments.h"  
+#include <iostream>       
+#include <algorithm>      
 
 using namespace std;
 

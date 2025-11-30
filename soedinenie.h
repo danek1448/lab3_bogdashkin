@@ -8,8 +8,6 @@
 #include <iostream>
 #include <fstream>
 #include <unordered_set>
-#include <stack>
-#include <queue>
 #include <unordered_map>
 #include <algorithm>
 #include <string>
@@ -24,22 +22,7 @@ struct Link
 
     bool CreateLink(unordered_map<int, Truba>& pipes,
         unordered_map<int, Kompressornaya_stantsiya>& cs_dict,
-        const vector<Link>& existing_connections); 
-
-    friend void TopSort(const unordered_map<int, Kompressornaya_stantsiya>& CS,
-        const vector<Link>& connections);
-
-    friend void dfs(int station, vector<int>& order, unordered_set<int>& visited,
-        const vector<Link>& connections, unordered_set<int>& gray_stations, bool& flag);
-
-    friend void deletePipeConnection(int id, vector<Link>& connections);
-    friend void deleteCSConnections(int id, vector<Link>& connections);
-
-    friend ostream& operator << (ostream& out, const Link& link);
-    friend ostream& operator << (ostream& out, const vector<Link>& system);
-    friend ofstream& operator << (ofstream& out, const Link& link);
-    friend ofstream& operator << (ofstream& out, const vector<Link>& system);
-    friend ifstream& operator >> (ifstream& in, Link& connection);
+        const vector<Link>& existing_connections);
 
     template <typename T>
     bool CheckAnExistence(int id, const unordered_map<int, T>& elements) {
@@ -59,33 +42,23 @@ bool CheckByMore(const Kompressornaya_stantsiya& CS, int percent);
 bool CheckByLess(const Kompressornaya_stantsiya& CS, int percent);
 
 template<typename T>
-using FilterPipes = bool(*)(const Truba& truba, T parameter);
-
-template<typename T>
 unordered_map<int, Truba> FindPipesByFilter(const unordered_map<int, Truba>& Pipeline,
-    FilterPipes<T> filter, T parameter) {
-    unordered_map<int, Truba> result;
-    for (const auto& s : Pipeline) {
-        if (filter(s.second, parameter)) {
-            result[s.first] = s.second;
-        }
-    }
-    return result;
-}
-
-template<typename T>
-using FilterCS = bool(*)(const Kompressornaya_stantsiya& CS, T parameter);
+    bool(*filter)(const Truba&, T), T parameter);
 
 template<typename T>
 unordered_map<int, Kompressornaya_stantsiya> FindCSByFilter(const unordered_map<int, Kompressornaya_stantsiya>& CS_system,
-    FilterCS<T> filter, T parameter) {
-    unordered_map<int, Kompressornaya_stantsiya> result;
-    for (const auto& s : CS_system) {
-        if (filter(s.second, parameter)) {
-            result[s.first] = s.second;
-        }
-    }
-    return result;
-}
+    bool(*filter)(const Kompressornaya_stantsiya&, T), T parameter);
+
+void deletePipeConnection(int id, vector<Link>& connections);
+void deleteCSConnections(int id, vector<Link>& connections);
+
+void TopSort(const unordered_map<int, Kompressornaya_stantsiya>& CS,
+    const vector<Link>& connections);
+
+ostream& operator<<(ostream& out, const Link& link);
+ostream& operator<<(ostream& out, const vector<Link>& system);
+ofstream& operator<<(ofstream& out, const Link& link);
+ofstream& operator<<(ofstream& out, const vector<Link>& system);
+ifstream& operator>>(ifstream& in, Link& connection);
 
 #endif

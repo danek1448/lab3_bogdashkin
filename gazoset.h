@@ -47,47 +47,4 @@ public:
     friend ostream& operator << (ostream& out, const Gazoset& gts);
 };
 
-template<class T>
-unordered_set<int> GetIds(const unordered_map<int, T>& System) {
-    unordered_set<int> IDs;
-    if (System.empty()) {
-        cout << "Нет доступных объектов!" << endl;
-        return IDs;
-    }
-
-    cout << "Выберите опцию:" << endl
-        << "1. Выбрать вручную" << endl
-        << "2. Выбрать все" << endl;
-
-    int choice = GetNumberInRange(1, 2);
-
-    switch (choice) {
-    case 1: {
-        while (true) {
-            cout << "Введите ID объекта (-1 для завершения): ";
-            int id = GetNumberMin(-1);
-            if (id == -1) break;
-
-            if (System.find(id) != System.end()) {
-                IDs.insert(id);
-                cout << "Объект " << id << " добавлен в выборку" << endl;
-            }
-            else {
-                cout << "Объект с ID " << id << " не найден!" << endl;
-            }
-        }
-        break;
-    }
-    case 2: {
-        for (const auto& item : System) {
-            IDs.insert(item.first);
-        }
-        cout << "Выбрано всех объектов: " << IDs.size() << endl;
-        break;
-    }
-    }
-
-    return IDs;
-}
-
 #endif

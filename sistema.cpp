@@ -230,7 +230,7 @@ void Sistema::Pokazat_soedineniya() const {
         cout << "Нет активных соединений." << endl;
     }
     else {
-        cout << "\n=== АКТИВНЫЕ СОЕДИНЕНИЯ ===" << endl;
+        cout << "\nАКТИВНЫЕ СОЕДИНЕНИЯ" << endl;
         for (const auto& conn : connections) {
             cout << "КС " << conn.CS_inlet << " -> КС " << conn.CS_outlet
                 << " (труба " << conn.pipeline << ")" << endl;
@@ -273,7 +273,7 @@ void Sistema::Topologicheskaya_sortirovka() {
         return;
     }
 
-    cout << "\n=== ТОПОЛОГИЧЕСКАЯ СОРТИРОВКА ===" << endl;
+    cout << "\nТОПОЛОГИЧЕСКАЯ СОРТИРОВКА" << endl;
     TopSort(cs_dict, connections);
     Logirovanie::log("Выполнена топологическая сортировка");
 }
