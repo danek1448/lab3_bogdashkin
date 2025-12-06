@@ -38,6 +38,9 @@ public:
     void Udalit_soedinenie();
     void Topologicheskaya_sortirovka();
     void Pokazat_gazoset() const;  
+
+    void CalculateMaxFlow();
+    void FindShortestPath();
 };
 
 #endif

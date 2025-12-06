@@ -278,6 +278,220 @@ void Sistema::Topologicheskaya_sortirovka() {
     Logirovanie::log("Выполнена топологическая сортировка");
 }
 
+
+void Sistema::CalculateMaxFlow() {
+    const auto& connections = gazoset.getConnections();
+    const auto& pipes = gazoset.getPipes();
+    const auto& cs_dict = gazoset.getCS();
+
+    if (connections.empty()) {
+        cout << "Нет соединений для расчета потока!" << endl;
+        return;
+    }
+
+    cout << "\nРАСЧЕТ МАКСИМАЛЬНОГО ПОТОКА" << endl;
+
+    if (cs_dict.empty()) {
+        cout << "Нет компрессорных станций!" << endl;
+        return;
+    }
+
+    cout << "Доступные КС (ID): ";
+    for (const auto& cs : cs_dict) {
+        cout << cs.first << " ";
+    }
+    cout << endl;
+
+    cout << "Введите ID начальной КС (источник): ";
+    int source = Proverka_in(0);
+
+    cout << "Введите ID конечной КС (сток): ";
+    int sink = Proverka_in(0);
+
+    if (cs_dict.find(source) == cs_dict.end()) {
+        cout << "Ошибка: КС " << source << " не существует!" << endl;
+        return;
+    }
+
+    if (cs_dict.find(sink) == cs_dict.end()) {
+        cout << "Ошибка: КС " << sink << " не существует!" << endl;
+        return;
+    }
+
+    if (source == sink) {
+        cout << "Ошибка: источник и сток не могут быть одинаковыми!" << endl;
+        return;
+    }
+
+    double max_flow = CalculateMaxxFlow(cs_dict, connections, pipes, source, sink);
+
+    cout << "\nРЕЗУЛЬТАТЫ" << endl;
+    cout << "Источник: КС " << source << endl;
+    cout << "Сток: КС " << sink << endl;
+    cout << "Максимальный поток: " << max_flow << " единиц" << endl;
+
+    if (max_flow == 0.0) {
+        cout << "\nПримечание: поток равен 0." << endl;
+        cout << "Возможные причины:" << endl;
+        cout << "1. Нет пути между указанными КС" << endl;
+        cout << "2. Все трубы на пути находятся в ремонте" << endl;
+        cout << "3. Нет соединений между этими КС" << endl;
+    }
+    else {
+        cout << "\nРасчет выполнен успешно!" << endl;
+
+        cout << "\nАктивные соединения в сети:" << endl;
+        int active_connections = 0;
+        for (const auto& conn : connections) {
+            auto pipe_it = pipes.find(conn.pipeline);
+            if (pipe_it != pipes.end()) {
+                const Truba& pipe = pipe_it->second;
+                double capacity = CalculatePipeCapacity(pipe);
+                if (capacity > 0) {
+                    cout << "  КС " << conn.CS_inlet << " -> КС " << conn.CS_outlet
+                        << " (Производительность: " << capacity << " ед.)" << endl;
+                    active_connections++;
+                }
+            }
+        }
+        if (active_connections == 0) {
+            cout << "  Нет активных соединений" << endl;
+        }
+    }
+
+    Logirovanie::log("Расчет максимального потока: КС " + to_string(source) +
+        " -> КС " + to_string(sink) + " = " + to_string(max_flow) + " единиц");
+}
+
+void Sistema::FindShortestPath() {
+    const auto& connections = gazoset.getConnections();
+    const auto& pipes = gazoset.getPipes();
+    const auto& cs_dict = gazoset.getCS();
+
+    if (connections.empty()) {
+        cout << "Нет соединений для поиска пути!" << endl;
+        return;
+    }
+
+    if (cs_dict.size() < 2) {
+        cout << "Для поиска пути нужно как минимум 2 КС!" << endl;
+        return;
+    }
+
+    cout << "\nПОИСК КРАТЧАЙШЕГО ПУТИ" << endl;
+
+    cout << "Доступные КС (ID): ";
+    for (const auto& cs : cs_dict) {
+        cout << cs.first << " ";
+    }
+    cout << endl;
+
+    cout << "Введите ID начальной КС: ";
+    int start = Proverka_in(0);
+
+    cout << "Введите ID конечной КС: ";
+    int end = Proverka_in(0);
+
+    if (cs_dict.find(start) == cs_dict.end()) {
+        cout << "Ошибка: КС " << start << " не существует!" << endl;
+        return;
+    }
+
+    if (cs_dict.find(end) == cs_dict.end()) {
+        cout << "Ошибка: КС " << end << " не существует!" << endl;
+        return;
+    }
+
+    if (start == end) {
+        cout << "Начальная и конечная КС одинаковы!" << endl;
+        cout << "Путь: КС " << start << endl;
+        cout << "Длина пути: 0 км" << endl;
+        return;
+    }
+
+    vector<int> path = FindShortestPathDijkstra(cs_dict, connections, pipes, start, end);
+
+    cout << "\nРЕЗУЛЬТАТЫ" << endl;
+
+    if (path.empty()) {
+        cout << "Путь между КС " << start << " и КС " << end << " не найден!" << endl;
+        cout << "\nВозможные причины:" << endl;
+        cout << "1. Нет соединений между этими КС" << endl;
+        cout << "2. Все трубы на возможных путях находятся в ремонте" << endl;
+
+        cout << "\nДоступные соединения из КС " << start << ":" << endl;
+        bool has_connections = false;
+        for (const auto& conn : connections) {
+            if (conn.CS_inlet == start) {
+                has_connections = true;
+                auto pipe_it = pipes.find(conn.pipeline);
+                if (pipe_it != pipes.end()) {
+                    const Truba& pipe = pipe_it->second;
+                    cout << "  -> КС " << conn.CS_outlet
+                        << " (Длина: " << pipe.getDlina() << " км, Статус: "
+                        << (pipe.isRemont() ? "В ремонте" : "Работает") << ")" << endl;
+                }
+            }
+        }
+        if (!has_connections) {
+            cout << "  Нет исходящих соединений" << endl;
+        }
+    }
+    else {
+        cout << "Найден кратчайший путь: ";
+        for (size_t i = 0; i < path.size(); ++i) {
+            cout << "КС " << path[i];
+            if (i < path.size() - 1) {
+                cout << " -> ";
+            }
+        }
+        cout << endl;
+
+        double total_length = 0.0;
+        cout << "\nДетали пути:" << endl;
+
+        for (size_t i = 0; i < path.size() - 1; ++i) {
+            int from = path[i];
+            int to = path[i + 1];
+
+            bool found = false;
+            for (const auto& conn : connections) {
+                if (conn.CS_inlet == from && conn.CS_outlet == to) {
+                    auto pipe_it = pipes.find(conn.pipeline);
+                    if (pipe_it != pipes.end()) {
+                        const Truba& pipe = pipe_it->second;
+                        double length = pipe.getDlina();
+                        total_length += length;
+
+                        cout << "  КС " << from << " -> КС " << to
+                            << " (Труба: " << pipe.getName()
+                            << ", Длина: " << length << " км"
+                            << ", Диаметр: " << pipe.getDiameter() << " мм"
+                            << ", Статус: " << (pipe.isRemont() ? "В ремонте" : "Работает")
+                            << ")" << endl;
+
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!found) {
+                cout << "  КС " << from << " -> КС " << to << ": соединение не найдено" << endl;
+            }
+        }
+
+        cout << "\nИтоговая информация:" << endl;
+        cout << "  Общая длина пути: " << total_length << " км" << endl;
+        cout << "  Количество КС на пути: " << path.size() << endl;
+        cout << "  Количество переходов: " << (path.size() - 1) << endl;
+    }
+
+    Logirovanie::log("Поиск кратчайшего пути: КС " + to_string(start) +
+        " -> КС " + to_string(end) +
+        (path.empty() ? " (путь не найден)" : " (путь найден)"));
+}
+
 void Sistema::Sohranit_dannye() {
     cout << "Введите имя файла для сохранения: ";
     cin.ignore();

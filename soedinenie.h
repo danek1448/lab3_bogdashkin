@@ -11,6 +11,10 @@
 #include <unordered_map>
 #include <algorithm>
 #include <string>
+#include <queue>
+#include <limits>
+#include <cmath>
+#include <functional>
 
 using namespace std;
 
@@ -54,6 +58,21 @@ void deleteCSConnections(int id, vector<Link>& connections);
 
 void TopSort(const unordered_map<int, Kompressornaya_stantsiya>& CS,
     const vector<Link>& connections);
+
+double CalculatePipeCapacity(const Truba& pipe);
+double CalculatePipeWeight(const Truba& pipe);
+
+vector<int> FindShortestPathDijkstra(
+    const unordered_map<int, Kompressornaya_stantsiya>& cs_dict,
+    const vector<Link>& connections,
+    const unordered_map<int, Truba>& pipes,
+    int start, int end);
+
+double CalculateMaxxFlow(
+    const unordered_map<int, Kompressornaya_stantsiya>& cs_dict,
+    const vector<Link>& connections,
+    const unordered_map<int, Truba>& pipes,
+    int source, int sink);
 
 ostream& operator<<(ostream& out, const Link& link);
 ostream& operator<<(ostream& out, const vector<Link>& system);

@@ -24,6 +24,8 @@ void Pokazat_menu() {
     cout << "15. Удалить соединение" << endl;
     cout << "16. Топологическая сортировка" << endl;
     cout << "17. Показать газосеть" << endl;
+    cout << "18. Расчет максимального потока" << endl;
+    cout << "19. Поиск кратчайшего пути" << endl;
     cout << "0. Выход" << endl;
     cout << "Выберите действие: ";
 }
@@ -76,6 +78,10 @@ int main() {
         case 16: sistema.Topologicheskaya_sortirovka();
             break;
         case 17: sistema.Pokazat_gazoset();
+            break;
+        case 18: sistema.CalculateMaxFlow();
+            break;
+        case 19: sistema.FindShortestPath();
             break;
         case 0:
             Logirovanie::log("Выход из программы");
